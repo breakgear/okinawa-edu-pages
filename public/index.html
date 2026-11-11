@@ -100,6 +100,15 @@
     background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
   }
   .card:hover { border-color: var(--accent); }
+  .card-main { display: flex; flex-direction: column; flex: 1; min-width: 0; text-decoration: none; color: inherit; }
+  .sub-link {
+    padding: 0 10px 10px; font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 500;
+  }
+  .sub-link:hover { text-decoration: underline; }
+  .tall-badge {
+    position: absolute; right: 6px; bottom: 6px; font-size: 11px; padding: 1px 7px; border-radius: 999px;
+    background: var(--accent); color: var(--accent-ink); font-variant-numeric: tabular-nums;
+  }
   .thumb { position: relative; aspect-ratio: 16 / 10; max-width: 100%; background: var(--bg); border-bottom: 1px solid var(--line); }
   .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
   .thumb .wait {
@@ -130,6 +139,7 @@
       <div class="tabs" role="group" aria-label="表示するサイト">
         <button type="button" id="tab-ja" data-site="ja" aria-pressed="true">日本語</button>
         <button type="button" id="tab-foreign" data-site="foreign" aria-pressed="false">外国語版</button>
+        <button type="button" id="tab-full" data-site="full" aria-pressed="false">全体見本</button>
       </div>
       <label class="search">
         <input id="q" type="search" placeholder="ページ名・エリア・カテゴリで探す" aria-label="ページを探す">
@@ -144,7 +154,9 @@
 <script>
 (function () {
   var state = { site: 'ja', group: null, q: '' };
-  var pages = [], shots = {};
+  var pages = [], shots = {}, fulls = {};
+  function hasFull(p) { return !!(fulls[p.id] && fulls[p.id].ok); }
+  function inSite(p, site) { return site === 'full' ? hasFull(p) : p.site === site; }
   var $ = function (id) { return document.getElementById(id); };
 
   function esc(s) {
@@ -157,7 +169,7 @@
   function visible() {
     var q = state.q.trim().toLowerCase();
     return pages.filter(function (p) {
-      if (p.site !== state.site) return false;
+      if (!inSite(p, state.site)) return false;
       if (state.group && p.group !== state.group) return false;
       if (!q) return true;
       return [p.title, p.area, p.category, p.kind, p.group, p.url].join(' ').toLowerCase().indexOf(q) !== -1;
@@ -167,7 +179,7 @@
   function groupsOf(site) {
     var order = [], count = {};
     pages.forEach(function (p) {
-      if (p.site !== site) return;
+      if (!inSite(p, site)) return;
       if (!(p.group in count)) { order.push(p.group); count[p.group] = 0; }
       count[p.group]++;
     });
@@ -194,10 +206,18 @@
     if (p.area) meta.push(p.area);
     if (p.date) meta.push('掲載 ' + p.date);
     else if (p.updated) meta.push('更新 ' + p.updated);
-    return '<a class="card" href="' + esc(href(p.url)) + '" target="_blank" rel="noopener" title="' + esc(p.title) + '">' +
-      '<div class="thumb">' + img + '</div>' +
+    var full = hasFull(p) ? fulls[p.id] : null;
+    var fullHref = full ? 'full/' + p.id + '.jpg?v=' + encodeURIComponent(full.at || '') : '';
+    var fullMode = state.site === 'full' && full;
+    var mainHref = fullMode ? fullHref : href(p.url);
+    var badge = full ? '<span class="tall-badge">全体あり</span>' : '';
+    var sub = '';
+    if (fullMode) sub = '<a class="sub-link" href="' + esc(href(p.url)) + '" target="_blank" rel="noopener">サイトのページを開く ↗</a>';
+    else if (full) sub = '<a class="sub-link" href="' + esc(fullHref) + '" target="_blank" rel="noopener">ページ全体の画像を見る ↗</a>';
+    return '<div class="card"><a class="card-main" href="' + esc(mainHref) + '" target="_blank" rel="noopener" title="' + esc(p.title) + '">' +
+      '<div class="thumb">' + img + badge + '</div>' +
       '<div class="body"><div class="title">' + esc(p.title) + '</div>' +
-      '<div class="meta">' + meta.map(function (m) { return '<span>' + esc(m) + '</span>'; }).join('') + '</div></div></a>';
+      '<div class="meta">' + meta.map(function (m) { return '<span>' + esc(m) + '</span>'; }).join('') + '</div></div></a>' + sub + '</div>';
   }
 
   function renderList() {
@@ -242,9 +262,10 @@
 
   Promise.all([
     fetch('pages.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }),
-    fetch('shots.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; })
+    fetch('shots.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }),
+    fetch('full-shots.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; })
   ]).then(function (res) {
-    pages = res[0].pages || []; shots = res[1] || {};
+    pages = res[0].pages || []; shots = res[1] || {}; fulls = res[2] || {};
     renderStats(); render();
   }).catch(function () {
     $('stats').textContent = 'ページ一覧を読み込めませんでした。再読み込みしてください。';

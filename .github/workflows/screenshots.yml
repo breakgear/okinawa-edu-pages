@@ -54,5 +54,6 @@ jobs:
             echo "変更なし"
           else
             git commit -m "スクリーンショットを更新"
+            git pull --rebase origin main
             git push
           fi
