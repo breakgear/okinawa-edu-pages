@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>おきなわ修学旅行ナビ ページ一覧</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@700&display=swap">
+<style>
+  /* Layout: sticky control bar over a thumbnail contact sheet, one card per page */
+  :root {
+    --bg: #f3f6f5;
+    --surface: #ffffff;
+    --ink: #142120;
+    --muted: #586a67;
+    --line: #d9e3e0;
+    --accent: #0a756d;
+    --accent-ink: #ffffff;
+    --accent-soft: #d6eeea;
+    --wait: #a2512f;
+    --font-display: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
+    --font-body: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c1413;
+      --surface: #141f1d;
+      --ink: #e4eeeb;
+      --muted: #97aba7;
+      --line: #25332f;
+      --accent: #4cc1b3;
+      --accent-ink: #062b27;
+      --accent-soft: #163a35;
+      --wait: #e39a77;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 14px/1.6 var(--font-body);
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+    background: var(--surface); z-index: 20;
+  }
+  .wrap {
+    max-width: 1440px; margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  header.bar {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+    background: var(--surface); border-bottom: 1px solid var(--line);
+  }
+  header .wrap { padding-block: 14px 10px; display: grid; gap: 10px; }
+  .top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+  h1 {
+    margin: 0; font-family: var(--font-display); font-size: 20px; letter-spacing: .02em;
+    text-wrap: balance;
+  }
+  .stats { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+  .tabs { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .tabs button {
+    font: inherit; font-weight: 500; padding: 6px 14px; border: 0; background: transparent; color: var(--muted); cursor: pointer;
+  }
+  .tabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .search { flex: 1 1 220px; min-width: 0; max-width: 360px; }
+  .search input {
+    width: 100%; font: inherit; padding: 6px 12px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  }
+  .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+  .chip {
+    flex: none; font: inherit; font-size: 13px; padding: 3px 11px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink); white-space: nowrap;
+  }
+  .chip span { color: var(--muted); margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+  button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  main .wrap { padding-block: 18px 48px; }
+  .group-title {
+    font-family: var(--font-display); font-size: 16px; margin: 22px 0 10px;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .group-title:first-child { margin-top: 0; }
+  .group-title small { font-family: var(--font-body); font-weight: 400; color: var(--muted); font-size: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .card {
+    display: flex; flex-direction: column; min-width: 0; text-decoration: none; color: inherit;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+  }
+  .card:hover { border-color: var(--accent); }
+  .thumb { position: relative; aspect-ratio: 16 / 10; max-width: 100%; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .thumb .wait {
+    position: absolute; inset: 0; display: grid; place-items: center; color: var(--wait); font-size: 12px;
+  }
+  .body { padding: 8px 10px 10px; display: grid; gap: 4px; min-width: 0; }
+  .title {
+    font-weight: 500; font-size: 13px; line-height: 1.45;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .meta { color: var(--muted); font-size: 11.5px; display: flex; flex-wrap: wrap; gap: 2px 8px; font-variant-numeric: tabular-nums; }
+  .empty { color: var(--muted); padding: 40px 0; text-align: center; }
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    h1 { font-size: 17px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="wrap">
+    <div class="top">
+      <h1>おきなわ修学旅行ナビ ページ一覧</h1>
+      <div class="stats" id="stats">読み込み中…</div>
+    </div>
+    <div class="controls">
+      <div class="tabs" role="group" aria-label="表示するサイト">
+        <button type="button" id="tab-ja" data-site="ja" aria-pressed="true">日本語</button>
+        <button type="button" id="tab-foreign" data-site="foreign" aria-pressed="false">外国語版</button>
+      </div>
+      <label class="search">
+        <input id="q" type="search" placeholder="ページ名・エリア・カテゴリで探す" aria-label="ページを探す">
+      </label>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="セクションで絞り込む"></div>
+  </div>
+</header>
+<main>
+  <div class="wrap" id="list"></div>
+</main>
+<script>
+(function () {
+  var state = { site: 'ja', group: null, q: '' };
+  var pages = [], shots = {};
+  var $ = function (id) { return document.getElementById(id); };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function href(u) { try { return new URL(u).href; } catch (e) { return u; } }
+
+  function visible() {
+    var q = state.q.trim().toLowerCase();
+    return pages.filter(function (p) {
+      if (p.site !== state.site) return false;
+      if (state.group && p.group !== state.group) return false;
+      if (!q) return true;
+      return [p.title, p.area, p.category, p.kind, p.group, p.url].join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+  }
+
+  function groupsOf(site) {
+    var order = [], count = {};
+    pages.forEach(function (p) {
+      if (p.site !== site) return;
+      if (!(p.group in count)) { order.push(p.group); count[p.group] = 0; }
+      count[p.group]++;
+    });
+    return order.map(function (g) { return { name: g, n: count[g] }; });
+  }
+
+  function renderChips() {
+    var gs = groupsOf(state.site);
+    var total = gs.reduce(function (a, g) { return a + g.n; }, 0);
+    var html = '<button type="button" class="chip" data-group="" aria-pressed="' + (!state.group) + '">すべて<span>' + total + '</span></button>';
+    gs.forEach(function (g) {
+      html += '<button type="button" class="chip" data-group="' + esc(g.name) + '" aria-pressed="' + (state.group === g.name) + '">' +
+        esc(g.name) + '<span>' + g.n + '</span></button>';
+    });
+    $('chips').innerHTML = html;
+  }
+
+  function card(p) {
+    var s = shots[p.id];
+    var img = s && s.ok
+      ? '<img loading="lazy" decoding="async" alt="" src="shots/' + p.id + '.jpg?v=' + encodeURIComponent(s.at || '') + '" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'wait\',textContent:\'画像なし\'}))">'
+      : '<div class="wait">' + (s && !s.ok ? '撮影できませんでした' : '撮影待ち') + '</div>';
+    var meta = [p.kind];
+    if (p.area) meta.push(p.area);
+    if (p.date) meta.push('掲載 ' + p.date);
+    else if (p.updated) meta.push('更新 ' + p.updated);
+    return '<a class="card" href="' + esc(href(p.url)) + '" target="_blank" rel="noopener" title="' + esc(p.title) + '">' +
+      '<div class="thumb">' + img + '</div>' +
+      '<div class="body"><div class="title">' + esc(p.title) + '</div>' +
+      '<div class="meta">' + meta.map(function (m) { return '<span>' + esc(m) + '</span>'; }).join('') + '</div></div></a>';
+  }
+
+  function renderList() {
+    var list = visible();
+    if (!list.length) { $('list').innerHTML = '<p class="empty">条件に合うページはありません</p>'; return; }
+    var html = '', current = null, buf = [];
+    function flush() {
+      if (current === null) return;
+      html += '<h2 class="group-title">' + esc(current) + '<small>' + buf.length + '件</small></h2><div class="grid">' + buf.join('') + '</div>';
+    }
+    list.forEach(function (p) {
+      if (p.group !== current) { flush(); current = p.group; buf = []; }
+      buf.push(card(p));
+    });
+    flush();
+    $('list').innerHTML = html;
+  }
+
+  function renderStats() {
+    var all = pages.length;
+    var ok = pages.filter(function (p) { return shots[p.id] && shots[p.id].ok; }).length;
+    var times = Object.keys(shots).map(function (k) { return shots[k].at; }).filter(Boolean).sort();
+    var last = times.length ? times[times.length - 1].slice(0, 10) : null;
+    $('stats').textContent = '全' + all + 'ページ ・ 画像あり ' + ok + (last ? ' ・ 撮影日 ' + last : '');
+  }
+
+  function render() { renderChips(); renderList(); }
+
+  document.querySelectorAll('.tabs button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      state.site = b.getAttribute('data-site'); state.group = null;
+      document.querySelectorAll('.tabs button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      render(); window.scrollTo(0, 0);
+    });
+  });
+  $('chips').addEventListener('click', function (e) {
+    var b = e.target.closest('.chip'); if (!b) return;
+    state.group = b.getAttribute('data-group') || null;
+    render(); window.scrollTo(0, 0);
+  });
+  $('q').addEventListener('input', function (e) { state.q = e.target.value; renderList(); });
+
+  Promise.all([
+    fetch('pages.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }),
+    fetch('shots.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; })
+  ]).then(function (res) {
+    pages = res[0].pages || []; shots = res[1] || {};
+    renderStats(); render();
+  }).catch(function () {
+    $('stats').textContent = 'ページ一覧を読み込めませんでした。再読み込みしてください。';
+  });
+})();
+</script>
+</body>
+</html>

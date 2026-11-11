@@ -1,0 +1,58 @@
+name: ページを撮影
+
+on:
+  # Actions タブの「Run workflow」ボタンから手動で実行できる
+  workflow_dispatch:
+    inputs:
+      only_missing:
+        description: 'まだ撮っていないページだけ撮る'
+        type: boolean
+        default: false
+  # ページ一覧や撮影プログラムを変更したときにも自動で実行する
+  push:
+    branches: [main]
+    paths:
+      - 'public/pages.json'
+      - 'scripts/shoot.mjs'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: screenshots
+  cancel-in-progress: false
+
+jobs:
+  shoot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 必要なものをインストール
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y fonts-noto-cjk
+
+      - name: 全ページを撮影
+        env:
+          ONLY_MISSING: ${{ inputs.only_missing && '1' || '0' }}
+        run: node scripts/shoot.mjs
+
+      - name: 撮った画像を保存
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
+          git add public/shots public/shots.json
+          if git diff --cached --quiet; then
+            echo "変更なし"
+          else
+            git commit -m "スクリーンショットを更新"
+            git push
+          fi
